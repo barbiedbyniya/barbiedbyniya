@@ -1,90 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>BarbiedByNiya</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      overflow-x: hidden;
-      background: black;
-      color: white;
-    }
+<meta charset="UTF-8">
+<title>3D Interactive Site</title>
 
-    .section {
-      height: 100vh;
-      position: relative;
-      perspective: 1px;
-      overflow: hidden;
-    }
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #050505;
+  font-family: Arial, sans-serif;
+}
 
-    .parallax {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 120%;
-      object-fit: cover;
-      transform: translateZ(-1px) scale(2);
-    }
+.overlay {
+  position: absolute;
+  z-index: 10;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+}
 
-    .content {
-      position: relative;
-      z-index: 2;
-      top: 40%;
-      text-align: center;
-      font-size: 30px;
-      font-weight: bold;
-    }
+h1 {
+  font-size: 3rem;
+  letter-spacing: 3px;
+}
 
-    .floating-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: hotpink;
-      padding: 15px 25px;
-      border-radius: 30px;
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .card {
-      width: 250px;
-      height: 300px;
-      margin: 50px auto;
-      background: white;
-      color: black;
-      border-radius: 15px;
-      transition: transform 0.3s;
-    }
-
-    .card:hover {
-      transform: rotateY(10deg) rotateX(10deg);
-    }
-  </style>
+</style>
 </head>
-
 <body>
 
-<div class="section">
-  <img src="yourimage1.jpg" class="parallax">
-  <div class="content">Barbie Vibes Only 💕</div>
+<div class="overlay">
+  <h1>DRIPPY GLOSS</h1>
 </div>
 
-<div class="section">
-  <img src="yourimage2.jpg" class="parallax">
-  <div class="content">Flawless Installs ✨</div>
-</div>
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
 
-<div class="section">
-  <img src="yourimage3.jpg" class="parallax">
-  <div class="content">Book Now 💅</div>
-</div>
+const scene = new THREE.Scene();
 
-<div class="card">HD Lace Install</div>
+// Fog for depth (important)
+scene.fog = new THREE.Fog(0x050505, 5, 20);
 
-<a href="#" class="floating-btn">BOOK NOW</a>
+// Camera
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 100);
+camera.position.z = 8;
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Lights
+const light = new THREE.PointLight(0xffffff, 2);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+// Create multiple floating objects
+const objects = [];
+
+for (let i = 0; i < 20; i++) {
+  const geometry = new THREE.IcosahedronGeometry(Math.random() * 0.6 + 0.2, 0);
+  const material = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(`hsl(${Math.random()*360}, 70%, 60%)`),
+    metalness: 0.8,
+    roughness: 0.2
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+
+  mesh.position.x = (Math.random() - 0.5) * 10;
+  mesh.position.y = (Math.random() - 0.5) * 10;
+  mesh.position.z = (Math.random() - 0.5) * 10;
+
+  scene.add(mesh);
+  objects.push(mesh);
+}
+
+// Mouse movement (camera movement instead of object)
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener("mousemove", (e) => {
+  mouseX = (e.clientX / innerWidth - 0.5);
+  mouseY = (e.clientY / innerHeight - 0.5);
+});
+
+// Animation
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Move camera slightly (parallax effect)
+  camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+  camera.position.y += (-mouseY * 2 - camera.position.y) * 0.05;
+
+  camera.lookAt(scene.position);
+
+  // Animate objects
+  objects.forEach(obj => {
+    obj.rotation.x += 0.01;
+    obj.rotation.y += 0.01;
+
+    obj.position.y += Math.sin(Date.now() * 0.001 + obj.position.x) * 0.002;
+  });
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// Resize
+window.addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
 
 </body>
 </html>
